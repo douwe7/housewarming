@@ -115,7 +115,8 @@ textarea {
 (() => {
   const EXCLUDED = "douwe";
   const COLORS = ["#d6331f","#f2a516","#2f8f5b","#2867c6","#7c3fb8","#e0559a","#14a3a3","#e2702a","#5b7a1f","#3a4fb0"];
-  const DEFAULT = ["Douwe","Sanne","Pieter","Lotte","Bram","Fleur","Jeroen","Eva"];
+  const FAVORITE = "Team geeft appeltaart aan Douwe";
+  const DEFAULT = ["Douwe","Sanne","Pieter",FAVORITE,"Lotte","Bram","Fleur","Jeroen","Eva"];
 
   const canvas = document.getElementById("wheel");
   const ctx = canvas.getContext("2d");
@@ -131,6 +132,8 @@ textarea {
 
   try { const s = localStorage.getItem("rad-entries"); ta.value = s !== null ? s : DEFAULT.join("\n"); }
   catch { ta.value = DEFAULT.join("\n"); }
+  const norm = (s) => s.trim().toLowerCase().replace(/\s+/g, " ");
+  if (!ta.value.split("\n").some(s => norm(s) === norm(FAVORITE))) ta.value = ta.value.replace(/\s*$/, "") + "\n" + FAVORITE;
 
   const isExcluded = (name) => name.trim().toLowerCase() === EXCLUDED;
 
@@ -245,7 +248,10 @@ textarea {
     const allowed = items.map((n, i) => i).filter(i => !isExcluded(items[i]));
     if (!allowed.length) return;
 
-    const target = allowed[Math.floor(Math.random() * allowed.length)];
+    const fav = allowed.filter(i => norm(items[i]) === norm(FAVORITE));
+    const rest = allowed.filter(i => norm(items[i]) !== norm(FAVORITE));
+    const pool = fav.length && (!rest.length || Math.random() < 0.5) ? fav : rest;
+    const target = pool[Math.floor(Math.random() * pool.length)];
     const n = items.length, seg = (Math.PI * 2) / n, TAU = Math.PI * 2;
     const f = 0.15 + Math.random() * 0.7;
     const desired = ((TAU - (target + f) * seg) % TAU + TAU) % TAU;
